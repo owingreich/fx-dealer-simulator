@@ -15,6 +15,13 @@ This is a **synthetic educational simulation**. It is not a trading application,
 
 The Streamlit app has five tabs: **Market & client orders**, **Inventory & accounting**, **Trade ledger**, **Risk diagnostics**, and **Policy experiments**.
 
+## Research Reports
+
+- [FX Market-Making Research Report (PDF)](reports/FX_Market_Making_Research_Report.pdf)
+- [Market-Making Policy Comparison](reports/findings.md)
+- [Scenario and Risk Analysis](reports/scenario_analysis.md)
+- [Methodology and Validation](reports/methodology_and_validation.md)
+
 ## Quick start
 
 Requires Python 3.12 or 3.13.
