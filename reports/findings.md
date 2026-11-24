@@ -1,70 +1,53 @@
-# FX Dealer Simulator: Market-Making Policy Study
+# Market-Making Policy Comparison
 
 ## Research question
 
-Under an assumed synthetic USD/SGD market and customer-demand model, how do fixed quotations, inventory-sensitive quotations, and inventory-sensitive quotations with external hedging compare in spread capture, risk, and client execution?
+Under the simulator's synthetic USD/SGD market and customer-acceptance assumptions, how do fixed quotes, inventory-aware quotes and inventory-aware quoting with external hedging compare on marked P&L, client fill rates and inventory risk?
 
-## Simulation design
+## Executive findings
 
-The simulator models a hypothetical dealer quoting SGD per USD. One pip equals 0.0001 SGD per USD. Client purchases of USD reduce dealer USD inventory; client sales of USD increase it. The dealer records SGD cash and reports marked equity as `SGD cash + USD inventory × synthetic mid` from a zero-balance starting book. It is a *simulation P&L proxy*, not actual bank accounting or a live brokerage statement.
+- In 50 calm-market sessions, fixed quotes produced the highest mean marked P&L proxy: **S$297.24**, compared with **S$241.63** for inventory-sensitive quotes and **S$251.78** for inventory-aware quoting with hedging.
+- The hedged policy reduced mean maximum drawdown from **S$430.31** to **S$264.74** (**38.5%** lower) and mean session peak inventory from **US$95,006** to **US$67,009** (**29.5%** lower).
+- Relative to fixed quotes, hedging had lower maximum drawdown in **92%** of matched calm sessions, but higher final P&L in only **42%**. The strategy's value is chiefly its **inventory risk reduction**, not consistently superior simulated profits.
+- All figures describe synthetic, mark-to-mid outcomes. No inference of live dealer profitability or causal real-market performance is justified.
 
-Each quoting policy faces the same synthetic price path, potential customer request sizes/directions and pre-drawn client acceptance uniforms within each seed. The hypothetical acceptance probability varies with the price quoted relative to the mid-price. Different policies therefore generate different *accepted* transactions. A hard inventory limit applies to all policies. The hedge policy trades externally at an assumed spread when inventory crosses a trigger.
+## Baseline design
 
-### Reproducible baseline settings
+Four-pip USD/SGD full spread; US$100,000 inventory limit; two-pip skew at the limit; 1-pip external hedge spread; hedging triggered at 70% and returned to 25% of limit; 50 potential requests per 250-step session; 75% baseline acceptance with sensitivity 0.4/pip; seeds 42-91. See [full methodology](methodology_and_validation.md).
 
-| Parameter | Value |
-|---|---:|
-| Synthetic market scenario | Calm |
-| Initial USD/SGD mid | 1.3500 |
-| Steps per simulated session | 250 |
-| Step volatility | 5 pips |
-| Dealer spread | 4 pips |
-| Potential client orders | 50 per session |
-| Client buy-USD probability | 50% |
-| Customer order-size range | US$10,000 to US$100,000 |
-| Dealer hard inventory limit | US$100,000 |
-| Inventory skew at full limit | 2 pips |
-| External hedge spread | 1 pip |
-| Hedge trigger / target | 70% / 25% of inventory limit |
-| Baseline client quote acceptance | 75% |
-| Sensitivity to quote concession | 0.4 per pip |
-| Seed range for comparison | 42 to 56 (15 sessions) |
+## Baseline results: 50 paired sessions
 
-## Results: paired 15-session simulation
+| Policy | Mean P&L (S$) | Median (S$) | Worst (S$) | Positive sessions | Mean max DD (S$) | Peak inv. (US$) | Fill rate |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Fixed | 297.24 | 240.61 | -587.54 | 74% | 430.31 | 95,006 | 55.12% |
+| Skew | 241.63 | 209.95 | -624.17 | 72% | 418.90 | 94,767 | 58.04% |
+| Skew + hedge | 251.78 | 279.49 | -232.90 | 76% | 264.74 | 67,009 | 62.40% |
 
-| Policy | Mean marked P&L (SGD) | Median P&L (SGD) | Worst session (SGD) | Mean maximum drawdown (SGD) | Mean peak absolute USD inventory | Mean client fill rate |
-|---|---:|---:|---:|---:|---:|---:|
-| Fixed quotes | +370.61 | +443.64 | -587.54 | 409.13 | 95,195 | 56.93% |
-| Inventory-aware quotes | +337.97 | +271.81 | -624.17 | 380.02 | 94,756 | 60.53% |
-| Inventory-aware + hedging | +285.18 | +413.09 | -229.36 | 268.69 | 66,738 | 62.00% |
+All P&L and drawdown figures are SGD; inventory is USD. **Mean max DD** means the mean of per-session maximum drawdowns, not the maximum loss across all sessions. A positive marked P&L is not a realised, fully liquidated net return.
 
-*Figures are deterministic outputs of the baseline simulator code, rounded to two decimals. Mean hedge spread cost was S$16.14 per hedged session (zero for other policies).* 
+## Paired policy differences
 
-### One illustrative session (seed 42)
+| Compared with fixed | Mean delta P&L (S$) | Paired sessions with higher P&L | Mean delta drawdown (S$) | Sessions with lower drawdown |
+| --- | ---: | ---: | ---: | ---: |
+| Skew | -55.61 | 34% | -11.41 | 44% |
+| Skew + hedge | -45.46 | 42% | -165.57 | 92% |
 
-| Policy | Final marked P&L | Max drawdown | Peak USD inventory | Client fill rate |
-|---|---:|---:|---:|---:|
-| Fixed quotes | -S$382.92 | S$623.96 | US$95,024 | 54% |
-| Inventory-aware quotes | -S$624.17 | S$730.31 | US$92,403 | 60% |
-| Inventory-aware + hedging | -S$229.36 | S$403.94 | US$59,941 | 64% |
+The paired comparison uses the same random seeds and customer opportunities within each scenario. Negative P&L or drawdown differences mean the alternative policy is lower than fixed quotes. A negative drawdown difference is generally preferable; a negative P&L difference is not.
+
+Inventory-aware quoting increased average client fill rates from **55.12%** to **58.04%**, but the mean marked P&L fell by **S$55.61** per simulated session. Adding hedging increased fill rates to **62.40%** while the average recorded external hedge spread expense was **S$19.65** per session. This cost is already included in marked P&L and must not be deducted again.
 
 ## Interpretation
 
-Across these 15 synthetic sessions, the unhedged fixed-quote policy had the highest **mean** P&L, while the hedge policy had lower mean P&L but a smaller worst-session loss, smaller average drawdown, lower peak USD inventory, and a higher client fill rate. Inventory-sensitive quotes alone increased the simulated client fill rate, without improving average P&L. Hedging therefore exchanged some average revenue for reduced simulated inventory risk under these particular parameters.
+The policy with the highest average simulated marked P&L does not have the smallest drawdown. In these artificial sessions, the hedged policy produced lower inventory exposure and a less adverse worst session, while fixed quoting had the highest average terminal marked equity. This is compatible with a risk/revenue trade-off, but the precise values are driven by the assumed customer-price sensitivity, request sizes, market paths and execution costs.
 
-The result is conditional on the assumed market paths, price acceptance function, hedge execution assumptions and inventory restrictions. Fifteen sessions are too few to support broad claims about superior market making. Median outcomes and individual sessions differ from means; the fixed-quote policy did not dominate every outcome.
+The hedged policy's higher fill rate arises from its ability to reduce inventory and subsequently accommodate additional client requests under the hard limit. The simulator does not model actual institutional RFQ competition or flow toxicity, so the result is not an empirical liquidity-quality measurement.
 
-## Important limitations and next validation steps
+## Questions left open
 
-- **No real transactions or live prices.** Synthetic steps are not seconds or ticks, and prices are not executable FX quotes.
-- **Invented customer-demand function.** Acceptance probability and potential customer arrivals are not calibrated to institutional RFQ data. Results may reverse under different assumptions.
-- **No market impact, adverse selection, informed flow or venue execution frictions.** The market follows an exogenous price path independently of dealer actions.
-- **Incomplete banking economics.** The model omits funding, carry, credit exposure, capital usage, collateral requirements, balance-sheet charges, financing and full inventory liquidation costs.
-- **Risk-aware quotes are simplified.** There is no queue position, competitive counterparty order book or dynamic risk transfer.
-- **Not an empirical statistical test.** Pairing random seeds improves comparability; it does not validate the market model.
+- Would the ranking hold with larger independent samples or realistically calibrated client acceptance?
+- How would adding adverse selection, financing, market impact and terminal liquidation costs affect the P&L distribution?
+- How sensitive are conclusions to the skew coefficient, hedge threshold, spread and maximum inventory?
 
-For a stronger future study, estimate customer price sensitivity from permissioned order/RFQ data, stress different inventory limits and trends, and report confidence intervals over many paired scenarios. This is beyond the scope of the initial portfolio demonstration.
+## Evidence and reproducibility
 
-## Reproduction
-
-From the repository root, install `requirements.txt`, run `python -m pytest -q`, and start `python -m streamlit run app.py`. In **Policy experiments**, use the settings above and download the comparison CSV. The figures in this report are from the code's `multi_seed_comparison` function with seeds 42–56.
+Data: [`data/baseline_sessions.csv`](data/baseline_sessions.csv) and [`data/baseline_summary.csv`](data/baseline_summary.csv). Additional scenarios: [Scenario Analysis](scenario_analysis.md). Exact data provenance and calculations: [Methodology and Validation](methodology_and_validation.md).
